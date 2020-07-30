@@ -1,0 +1,5 @@
+Hj\Model\Person:
+  person1:
+    firstName: 'FAKE_FIRSTNAME'
+    lastName: 'FAKE_LASTNAME'
+    birthDate: '<identity(new \DateTime("2000-01-01"))>'

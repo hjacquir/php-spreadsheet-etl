@@ -1,0 +1,2 @@
+This file is added because git do not commit an empty folder.
+When the test is executed this file is removed from the temporary test folder.
