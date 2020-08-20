@@ -85,4 +85,13 @@ class WaitingDirectory implements Directory
             "." .
             $this->baseDirectory->getCurrentPoppedFileExtension();
     }
+
+    /**
+     * @param string $dirName
+     * @return string
+     */
+    public function getCurrentPoppedFileExtension($dirName = "")
+    {
+        return $this->baseDirectory->getCurrentPoppedFileExtension($dirName);
+    }
 }

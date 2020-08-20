@@ -24,6 +24,7 @@ use Hj\Error\Database\DatabaseConnexionError;
 use Hj\Error\Database\DoctrinePersistenceError;
 use Hj\Error\DuplicateHeaderError;
 use Hj\Error\File\DirectoryNotExistError;
+use Hj\Error\File\FileWithoutExtensionError;
 use Hj\Error\File\GettingSheetFromFileError;
 use Hj\Error\File\LoadingFileError;
 use Hj\Error\File\OnSettingValueError;
@@ -64,6 +65,7 @@ use Hj\Strategy\Database\SaveDatasOnDatabase;
 use Hj\Strategy\File\Archive;
 use Hj\Strategy\File\CheckFileExtension;
 use Hj\Strategy\File\CheckIfFileHasMultipleSheet;
+use Hj\Strategy\File\CheckThatFileHasExtension;
 use Hj\Strategy\File\CollectInitialFileNameFromWaitingDirectory;
 use Hj\Strategy\File\CopyFromWaitingToInProcessing;
 use Hj\Strategy\File\CopyToFailureDirectory;
@@ -330,6 +332,13 @@ class ExtractCommand extends AbstractCommand
             $waitingDirectory,
         );
 
+        // we check if file has an extension
+        $checkIfFileIsWithoutExtension = new CheckThatFileHasExtension(
+          $waitingDirectory,
+          $this->errorCollector,
+          new FileWithoutExtensionError()
+        );
+
         // we move the first file while waiting in the directory in progressing in order to process it
         $moveFromWaitingToProcessing = new CopyFromWaitingToInProcessing(
             $this->errorCollector,
@@ -475,6 +484,7 @@ class ExtractCommand extends AbstractCommand
             $initializeEntityManagerStrategy,
             $resetProcessingStrategy,
             $collectInitialFileName,
+            $checkIfFileIsWithoutExtension,
             $moveFromWaitingToProcessing,
             $checkFileExtension,
             $convertCsvToUtf8,

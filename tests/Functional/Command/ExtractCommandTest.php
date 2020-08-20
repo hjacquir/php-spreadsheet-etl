@@ -16,6 +16,7 @@ use Hj\Error\Data\DataMandatoryMissingError;
 use Hj\Error\Database\DatabaseConnexionError;
 use Hj\Error\DuplicateHeaderError;
 use Hj\Error\Error;
+use Hj\Error\File\FileWithoutExtensionError;
 use Hj\Error\FileExtensionError;
 use Hj\Error\FileWithMultipleSheetsError;
 use Hj\Error\HeaderNotOnFirstRowError;
@@ -255,6 +256,12 @@ class ExtractCommandTest extends AbstractFunctionalTestCase
     public function provideDataToTestingBehaviourWhenAdminErrorOccured()
     {
         return [
+            // file without extension
+            'fileWithoutExtension' => [
+                "fileWithoutExtension.yaml",
+                FileWithoutExtensionError::class,
+                'fileWithoutExtension',
+            ],
             // database connexion error
             'databaseError' => [
                 "databaseError.yaml",
