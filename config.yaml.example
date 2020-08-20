@@ -1,8 +1,8 @@
 filePath:
-  archived: 'C:/spread-sheet-etl/archived/'
-  in_processing: 'C:/spread-sheet-etl/in_processing/'
-  waiting: 'C:/spread-sheet-etl/waiting/'
-  failure: 'C:/spread-sheet-etl/failure/'
+  archived: 'C:\for-spreadsheet-etl-tests/archived/'
+  in_processing: 'C:\for-spreadsheet-etl-tests/in_processing/'
+  waiting: 'C:\for-spreadsheet-etl-tests/waiting/'
+  failure: 'C:\for-spreadsheet-etl-tests/failure/'
 smtp:
   host: 'localhost:2525'
 ftp:

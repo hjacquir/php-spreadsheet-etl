@@ -1,22 +1,25 @@
 <?php
 /**
  * User: h.jacquir
- * Date: 21/01/2020
- * Time: 14:20
+ * Date: 20/08/2020
+ * Time: 11:28
  */
 
-namespace Hj;
+namespace Hj\Strategy\File;
 
 use Buuum\Ftp\FtpWrapper;
 use Hj\Collector\ErrorCollector;
+use Hj\Directory\WaitingDirectory;
 use Hj\Error\FtpFailureDownloadFile;
+use Hj\Strategy\Strategy;
+use Hj\YamlConfigLoader;
 use Monolog\Logger;
 
 /**
- * Class FileMigrator
- * @package Hj
+ * Class MigrateFileStrategy
+ * @package Hj\Strategy\File
  */
-class FileMigrator
+class MigrateFileStrategy implements Strategy
 {
     /**
      * @var FtpWrapper
@@ -50,7 +53,14 @@ class FileMigrator
     private $filesMigrated = [];
 
     /**
-     * FileMigrator constructor.
+     * @var WaitingDirectory
+     */
+    private $waitingDirectory;
+
+    /**
+     * MigrateFileStrategy constructor.
+     *
+     * @param WaitingDirectory $waitingDirectory
      * @param FtpWrapper $ftpWrapper
      * @param YamlConfigLoader $configLoader
      * @param Logger $logger
@@ -58,12 +68,15 @@ class FileMigrator
      * @param FtpFailureDownloadFile $ftpDownloadFailureError
      */
     public function __construct(
+        WaitingDirectory $waitingDirectory,
         FtpWrapper $ftpWrapper,
         YamlConfigLoader $configLoader,
         Logger $logger,
         ErrorCollector $errorCollector,
         FtpFailureDownloadFile $ftpDownloadFailureError
-    ) {
+    )
+    {
+        $this->waitingDirectory = $waitingDirectory;
         $this->ftpWrapper = $ftpWrapper;
         $this->configLoader = $configLoader;
         $this->logger = $logger;
@@ -71,7 +84,15 @@ class FileMigrator
         $this->ftpDownloadFailureError = $ftpDownloadFailureError;
     }
 
-    public function migrate()
+    /**
+     * @return bool
+     */
+    public function isAppropriate()
+    {
+        return false === $this->errorCollector->hasError();
+    }
+
+    public function apply()
     {
         $distantDirectories = $this->ftpWrapper->nlist($this->configLoader->getFtpDirectory());
 
@@ -130,7 +151,7 @@ class FileMigrator
      */
     private function generateLocalFileName($filePath)
     {
-        return $this->configLoader->getWaitingFilePath() . str_replace($this->configLoader->getFtpDirectory(), "",
-                $filePath);
+        return $this->waitingDirectory->getBasePath() .
+            str_replace($this->configLoader->getFtpDirectory(), "", $filePath);
     }
 }

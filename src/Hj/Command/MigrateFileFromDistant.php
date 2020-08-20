@@ -12,11 +12,16 @@ use Buuum\Ftp\FtpWrapper;
 use Hj\Adapter\HtmlFormatterAdapter;
 use Hj\Collector\CollectorIterator;
 use Hj\Collector\ErrorCollector;
+use Hj\Directory\BaseDirectory;
+use Hj\Directory\WaitingDirectory;
+use Hj\Error\File\DirectoryNotExistError;
 use Hj\Error\FtpFailureConnexion;
 use Hj\Error\FtpFailureDownloadFile;
 use Hj\Factory\MailHandlerFactory;
-use Hj\FileMigrator;
+use Hj\Helper\CatchedErrorHandler;
 use Hj\Notifier\MailNotifier;
+use Hj\Processor\FileProcessor;
+use Hj\Strategy\File\MigrateFileStrategy;
 use Hj\Strategy\Notifier\NotifyAdminStrategyOnSuccesfull;
 use Hj\Strategy\Notifier\NotifyAdminStrategyWhenErrorOccured;
 use Hj\Validator\ConfigFileValidator;
@@ -116,15 +121,31 @@ class MigrateFileFromDistant extends AbstractCommand
         try {
             $connection->open();
             $ftp = new FtpWrapper($connection);
-            $fileMigrator = new FileMigrator(
+            $waitingDirectory = new WaitingDirectory(
+                new BaseDirectory(
+                    $configLoader->getWaitingFilePath(),
+                    new CatchedErrorHandler(
+                        $this->errorCollector
+                    ),
+                    new DirectoryNotExistError()
+                )
+            );
+            $migrationStrategy = new MigrateFileStrategy(
+                $waitingDirectory,
                 $ftp,
                 $configLoader,
                 $this->logger,
                 $this->errorCollector,
                 new FtpFailureDownloadFile()
             );
-            $fileMigrator->migrate();
-            $migrationMessageOnSuccesfull = $fileMigrator->getMigrationMessage();
+            $processor = new FileProcessor(
+                $this->logger,
+                [
+                    $migrationStrategy,
+                ]
+            );
+            $processor->process();
+            $migrationMessageOnSuccesfull = $migrationStrategy->getMigrationMessage();
         } catch (\Exception $e) {
             $this->errorCollector->addError(
                 new FtpFailureConnexion($e)
@@ -145,7 +166,7 @@ class MigrateFileFromDistant extends AbstractCommand
         $notifyStrategies = [
             new NotifyAdminStrategyWhenErrorOccured(
                 $this->errorCollector,
-                "Spreadsheet-etl had encountered the belows errors : \n\n"
+                "Spreadsheet-etl had encountered the belows errors when migrating file from the server : \n\n"
             ),
             new NotifyAdminStrategyOnSuccesfull(
                 $this->errorCollector,
