@@ -8,6 +8,7 @@
 namespace Hj\Strategy\Data;
 
 use Hj\Collector\ErrorCollector;
+use Hj\Config\FileHeadersConfig;
 use Hj\Error\ConfigFileMismatchError;
 use Hj\File\Field\AbstractField;
 use Hj\Strategy\Strategy;
@@ -42,19 +43,27 @@ class CheckFieldConfigStrategy implements Strategy
     private $associatedError;
 
     /**
+     * @var FileHeadersConfig
+     */
+    private $fileHeadersConfig;
+
+    /**
      * CheckFieldConfigStrategy constructor.
+     * @param FileHeadersConfig $fileHeadersConfig
      * @param YamlConfigLoader $configLoader
      * @param AbstractField[] $fields
      * @param ErrorCollector $errorCollector
      * @param ConfigFileMismatchError $associatedError
      */
     public function __construct(
+        FileHeadersConfig $fileHeadersConfig,
         YamlConfigLoader $configLoader,
         array $fields,
         ErrorCollector $errorCollector,
         ConfigFileMismatchError $associatedError
     )
     {
+        $this->fileHeadersConfig = $fileHeadersConfig;
         $this->configLoader = $configLoader;
         $this->fields = $fields;
         $this->errorCollector = $errorCollector;
@@ -69,10 +78,13 @@ class CheckFieldConfigStrategy implements Strategy
         return true;
     }
 
+    /**
+     * @throws \Hj\Exception\KeyNotExist
+     */
     public function apply()
     {
-        $commonMandatoryHeaders = $this->configLoader->getFileCommonMandatoryHeaders();
-        $optionalHeaders = $this->configLoader->getFileOptionalHeaders();
+        $commonMandatoryHeaders = $this->fileHeadersConfig->getCommonMandatoryHeadersConfig()->getValue();
+        $optionalHeaders = $this->fileHeadersConfig->getOptionalHeadersConfig()->getValue();
 
         $expectedConfigHeaders = array_merge(
             $commonMandatoryHeaders,

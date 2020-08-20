@@ -7,6 +7,7 @@
 
 namespace Hj\Notifier;
 
+use Hj\Config\MailsConfig;
 use Hj\Error\Error;
 use Hj\Factory\MailHandlerFactory;
 use Hj\Strategy\Notifier\NotifierStrategy;
@@ -68,7 +69,13 @@ class MailNotifier implements Notifier
     private $attachmentStrategies = [];
 
     /**
+     * @var MailsConfig
+     */
+    private $mailsConfig;
+
+    /**
      * MailNotifier constructor.
+     * @param MailsConfig $mailsConfig
      * @param FormatterInterface $formatter
      * @param array $mailNotifierStrategies
      * @param Swift_Message $swiftMessage
@@ -78,6 +85,7 @@ class MailNotifier implements Notifier
      * @param array $addAttachmentStrategies
      */
     public function __construct(
+        MailsConfig $mailsConfig,
         FormatterInterface $formatter,
         array $mailNotifierStrategies,
         Swift_Message $swiftMessage,
@@ -86,6 +94,7 @@ class MailNotifier implements Notifier
         Logger $logger,
         array $addAttachmentStrategies
     ) {
+        $this->mailsConfig = $mailsConfig;
         $this->formatter = $formatter;
         $this->mailNotifierStrategies = $mailNotifierStrategies;
         $this->swiftMessage = $swiftMessage;
@@ -95,9 +104,12 @@ class MailNotifier implements Notifier
         $this->attachmentStrategies = $addAttachmentStrategies;
     }
 
+    /**
+     * @throws \Hj\Exception\KeyNotExist
+     */
     public function notify()
     {
-        $this->swiftMessage->setFrom([$this->configLoader->getMailFrom()]);
+        $this->swiftMessage->setFrom([$this->mailsConfig->getFrom()->getValue()]);
 
         foreach ($this->attachmentStrategies as $attachmentStrategy) {
             $attachmentStrategy->apply();

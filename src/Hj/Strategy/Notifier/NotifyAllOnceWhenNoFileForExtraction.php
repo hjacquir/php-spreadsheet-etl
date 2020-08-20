@@ -7,6 +7,7 @@
 
 namespace Hj\Strategy\Notifier;
 
+use Hj\Config\MailsConfig;
 use Hj\Directory\WaitingDirectory;
 use Hj\YamlConfigLoader;
 
@@ -22,11 +23,21 @@ class NotifyAllOnceWhenNoFileForExtraction implements NotifierStrategy
     private $waitingDirectory;
 
     /**
+     * @var MailsConfig
+     */
+    private $mailsConfig;
+
+    /**
      * NotifyAllOnceWhenNoFileForExtraction constructor.
+     * @param MailsConfig $mailsConfig
      * @param WaitingDirectory $waitingDirectory
      */
-    public function __construct(WaitingDirectory $waitingDirectory)
+    public function __construct(
+        MailsConfig $mailsConfig,
+        WaitingDirectory $waitingDirectory
+    )
     {
+        $this->mailsConfig = $mailsConfig;
         $this->waitingDirectory = $waitingDirectory;
     }
 
@@ -49,11 +60,12 @@ class NotifyAllOnceWhenNoFileForExtraction implements NotifierStrategy
     /**
      * @param YamlConfigLoader $configLoader
      * @return array
+     * @throws \Hj\Exception\KeyNotExist
      */
     public function getSendTo(YamlConfigLoader $configLoader)
     {
-        $users = $configLoader->getUsersMails();
-        $admins = $configLoader->getAdminsMails();
+        $users = $this->mailsConfig->getUsers()->getValue();
+        $admins = $this->mailsConfig->getAdmins()->getValue();
 
         return array_merge($users, $admins);
     }

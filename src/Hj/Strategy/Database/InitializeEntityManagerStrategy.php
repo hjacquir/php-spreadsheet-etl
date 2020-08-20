@@ -9,6 +9,7 @@ namespace Hj\Strategy\Database;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Setup;
+use Hj\Config\DatabaseConfig;
 use Hj\Directory\Directory;
 use Hj\Error\Database\DatabaseConnexionError;
 use Hj\Exception\AttributeNotSetException;
@@ -76,7 +77,13 @@ class InitializeEntityManagerStrategy implements Strategy
     private $isInitialized = false;
 
     /**
+     * @var DatabaseConfig
+     */
+    private $databaseConfig;
+
+    /**
      * InitializeEntityManagerStrategy constructor.
+     * @param DatabaseConfig $databaseConfig
      * @param CatchedErrorHandler $catchedErrorHandler
      * @param string $annotationXmlPath
      * @param string $proxyDirPath
@@ -86,6 +93,7 @@ class InitializeEntityManagerStrategy implements Strategy
      * @param Directory $waitingDirectory
      */
     public function __construct(
+        DatabaseConfig $databaseConfig,
         CatchedErrorHandler $catchedErrorHandler,
         $annotationXmlPath,
         $proxyDirPath,
@@ -95,6 +103,7 @@ class InitializeEntityManagerStrategy implements Strategy
         Directory $waitingDirectory
     )
     {
+        $this->databaseConfig = $databaseConfig;
         $this->annotationXmlPath = $annotationXmlPath;
         $this->autoGenerateProxyClasses = $autoGenerateProxyClasses;
         $this->proxyDirPath = $proxyDirPath;
@@ -113,6 +122,9 @@ class InitializeEntityManagerStrategy implements Strategy
             && false === $this->catchedErrorHandler->getErrorCollector()->hasError();
     }
 
+    /**
+     * @throws \Hj\Exception\KeyNotExist
+     */
     public function apply()
     {
         if (is_null($this->doctrineOrmEntityManager)) {
@@ -121,13 +133,13 @@ class InitializeEntityManagerStrategy implements Strategy
             $config->setAutoGenerateProxyClasses($this->autoGenerateProxyClasses);
 
             $connexion = [
-                self::DRIVER => $this->configLoader->getDatabaseDriver(),
-                self::HOST => $this->configLoader->getDatabaseHost(),
-                self::CHARSET => $this->configLoader->getDatabaseCharset(),
-                self::USER => $this->configLoader->getDatabaseUser(),
-                self::PASSWORD => $this->configLoader->getDatabasePassword(),
-                self::DBNAME => $this->configLoader->getDatabaseDbName(),
-                self::PORT => $this->configLoader->getDatabasePort(),
+                self::DRIVER => $this->databaseConfig->getDriver()->getValue(),
+                self::HOST => $this->databaseConfig->getHost()->getValue(),
+                self::CHARSET => $this->databaseConfig->getCharset()->getValue(),
+                self::USER => $this->databaseConfig->getUser()->getValue(),
+                self::PASSWORD => $this->databaseConfig->getPassword()->getValue(),
+                self::DBNAME => $this->databaseConfig->getDbName()->getValue(),
+                self::PORT => $this->databaseConfig->getPort()->getValue(),
             ];
 
             try {

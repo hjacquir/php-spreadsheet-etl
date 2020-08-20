@@ -34,6 +34,9 @@ use Hj\Error\FileWithMultipleSheetsError;
 use Hj\Error\HeaderNotOnFirstRowError;
 use Hj\Error\MandatoryHeaderMissing;
 use Hj\Extractor;
+use Hj\Factory\DatabaseConfigFactory;
+use Hj\Factory\FileHeaderConfigFactory;
+use Hj\Factory\MailConfigFactory;
 use Hj\Factory\MailHandlerFactory;
 use Hj\File\CellAdapter;
 use Hj\File\Field\BirthDate;
@@ -294,10 +297,12 @@ class ExtractCommand extends AbstractCommand
             $firstName,
             $birthDate,
         ];
+        $fileHeadersConfig = (new FileHeaderConfigFactory())->createConfig($yamlConfigFilePath);
 
         // check if fields in list above are already
         // defined into the .yaml config file
         $checkFieldConfigStrategy = new CheckFieldConfigStrategy(
+            $fileHeadersConfig,
             $configLoader,
             $fieldsToExtract,
             $this->errorCollector,
@@ -309,9 +314,10 @@ class ExtractCommand extends AbstractCommand
             $waitingDirectory,
             $this->logger
         );
-
+        $databaseConfigs = (new DatabaseConfigFactory())->createConfig($yamlConfigFilePath);
         // initialization of the entity manager for database queries
         $initializeEntityManagerStrategy = new InitializeEntityManagerStrategy(
+            $databaseConfigs,
             $catchedErrorHandler,
             __DIR__ . "/../../../doctrine",
             __DIR__ . "/../../../doctrineProxies",
@@ -387,6 +393,7 @@ class ExtractCommand extends AbstractCommand
 
         // check that mandatory headers are filled
         $mandatoryHeadersChecker = new MandatoryHeadersChecker(
+            $fileHeadersConfig,
             $inProcessingDirectory,
             $this->errorCollector,
             new MandatoryHeaderMissing(),
@@ -580,19 +587,24 @@ class ExtractCommand extends AbstractCommand
 
         $handlerFactory = new MailHandlerFactory($mailer);
 
+        $mailsConfig = (new MailConfigFactory())->createConfig($yamlConfigFilePath);
+
         $notifyStrategies = [
             new NotifyUserStrategyWhenErrorOccured(
+                $mailsConfig,
                 $copyToFailureDirectory,
                 $this->errorCollector
             ),
             new NotifyAdminStrategyWhenErrorOccuredOnlyOnce(
                 $checkIfAdminNotificationAlreadySend,
                 new NotifyAdminStrategyWhenErrorOccured(
+                    $mailsConfig,
                     $this->errorCollector,
                     "Spreadsheet-etl had encountered the belows errors : " . "\n\n"
                 ),
                 ),
             new NotifyUserStrategyOnSuccesfull(
+                $mailsConfig,
                 $saveDataToDatabase,
                 $archiveStrategy,
                 $this->errorCollector
@@ -600,6 +612,7 @@ class ExtractCommand extends AbstractCommand
         ];
 
         $mailNotifier = new MailNotifier(
+            $mailsConfig,
             new HtmlFormatterAdapter(
                 "d/m/Y H:i:s"
             ),

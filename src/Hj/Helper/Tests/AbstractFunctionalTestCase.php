@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Setup;
 use Hj\Command\AbstractCommand;
 use Hj\Error\Error;
+use Hj\Factory\DatabaseConfigFactory;
 use Hj\Validator\ConfigFileValidator;
 use Hj\YamlConfigLoader;
 use Monolog\Logger;
@@ -278,6 +279,12 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
         $connection->executeQuery('SET FOREIGN_KEY_CHECKS = 1;');
     }
 
+    /**
+     * @return EntityManager
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Hj\Exception\KeyNotExist
+     * @throws \Hj\Exception\WrongTypeException
+     */
     protected function getEntityManager()
     {
         if (is_null($this->entityManager)) {
@@ -292,14 +299,18 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
             $config->setProxyDir($this->getCurrentContextualDir() . "/../../../doctrineProxies");
             $config->setAutoGenerateProxyClasses(true);
 
+            $databaseConfigs = (new DatabaseConfigFactory())->createConfig(
+                $this->getTestConfigFileFolderPath() . "configFileWithoutError.yaml"
+            );
+
             $connexion = [
-                'driver' => $configLoader->getDatabaseDriver(),
-                'host' => $configLoader->getDatabaseHost(),
-                'charset' => $configLoader->getDatabaseCharset(),
-                'user' => $configLoader->getDatabaseUser(),
-                'password' => $configLoader->getDatabasePassword(),
-                'dbname' => $configLoader->getDatabaseDbName(),
-                'port' => $configLoader->getDatabasePort(),
+                'driver' => $databaseConfigs->getDriver()->getValue(),
+                'host' => $databaseConfigs->getHost()->getValue(),
+                'charset' => $databaseConfigs->getCharset()->getValue(),
+                'user' => $databaseConfigs->getUser()->getValue(),
+                'password' => $databaseConfigs->getPassword()->getValue(),
+                'dbname' => $databaseConfigs->getDbName()->getValue(),
+                'port' => $databaseConfigs->getPort()->getValue(),
             ];
 
             $this->entityManager = EntityManager::create($connexion, $config);

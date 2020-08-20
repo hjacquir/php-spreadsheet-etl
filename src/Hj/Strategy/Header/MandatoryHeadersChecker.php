@@ -9,6 +9,7 @@ namespace Hj\Strategy\Header;
 
 
 use Hj\Collector\ErrorCollector;
+use Hj\Config\FileHeadersConfig;
 use Hj\Directory\BaseDirectory;
 use Hj\Error\MandatoryHeaderMissing;
 use Hj\Strategy\Strategy;
@@ -46,7 +47,13 @@ class MandatoryHeadersChecker implements Strategy
     private $extractHeaderStrategy;
 
     /**
+     * @var FileHeadersConfig
+     */
+    private $fileHeadersConfig;
+
+    /**
      * CheckCommonMandatoryHeaders constructor.
+     * @param FileHeadersConfig $fileHeadersConfig
      * @param BaseDirectory $inProcessingDir
      * @param ErrorCollector $errorCollector
      * @param MandatoryHeaderMissing $error
@@ -54,6 +61,7 @@ class MandatoryHeadersChecker implements Strategy
      * @param HeaderExtraction $extractHeaderStrategy
      */
     public function __construct(
+        FileHeadersConfig $fileHeadersConfig,
         BaseDirectory $inProcessingDir,
         ErrorCollector $errorCollector,
         MandatoryHeaderMissing $error,
@@ -61,6 +69,7 @@ class MandatoryHeadersChecker implements Strategy
         HeaderExtraction $extractHeaderStrategy
     )
     {
+        $this->fileHeadersConfig = $fileHeadersConfig;
         $this->inProcessingDir = $inProcessingDir;
         $this->errorCollector = $errorCollector;
         $this->error = $error;
@@ -77,9 +86,14 @@ class MandatoryHeadersChecker implements Strategy
             && false === $this->errorCollector->hasError();
     }
 
+    /**
+     * @throws \Hj\Exception\KeyNotExist
+     */
     public function apply()
     {
-        $commonMandatoryHeaders = $this->configLoader->getFileCommonMandatoryHeaders();
+        $commonMandatoryHeaders = $this->fileHeadersConfig
+            ->getCommonMandatoryHeadersConfig()
+            ->getValue();
 
         $extractedHeaderValues = $this->extractHeaderStrategy->getExtractedHeaderValues();
 

@@ -8,6 +8,7 @@
 namespace Hj\Strategy\Notifier;
 
 use Hj\Collector\ErrorCollector;
+use Hj\Config\MailsConfig;
 use Hj\Strategy\Database\SaveDatasOnDatabase;
 use Hj\Strategy\File\Archive;
 use Hj\YamlConfigLoader;
@@ -34,16 +35,24 @@ class NotifyUserStrategyOnSuccesfull implements NotifierStrategy
     private $saveDatasOnDatabaseStrategy;
 
     /**
+     * @var MailsConfig
+     */
+    private $mailsConfig;
+
+    /**
      * NotifyUserStrategyWhenErrorOccured constructor.
+     * @param MailsConfig $mailsConfig
      * @param SaveDatasOnDatabase $saveDatasOnDatabaseStrategy
      * @param Archive $archiveStrategy
      * @param ErrorCollector $errorCollector
      */
     public function __construct(
+        MailsConfig $mailsConfig,
         SaveDatasOnDatabase $saveDatasOnDatabaseStrategy,
         Archive $archiveStrategy,
         ErrorCollector $errorCollector
     ) {
+        $this->mailsConfig = $mailsConfig;
         $this->saveDatasOnDatabaseStrategy = $saveDatasOnDatabaseStrategy;
         $this->archiveStrategy = $archiveStrategy;
         $this->errorCollector = $errorCollector;
@@ -61,10 +70,11 @@ class NotifyUserStrategyOnSuccesfull implements NotifierStrategy
     /**
      * @param YamlConfigLoader $configLoader
      * @return array
+     * @throws \Hj\Exception\KeyNotExist
      */
     public function getSendTo(YamlConfigLoader $configLoader)
     {
-        return $configLoader->getUsersMails();
+        return $this->mailsConfig->getUsers()->getValue();
     }
 
     /**

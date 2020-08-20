@@ -8,6 +8,7 @@
 namespace Hj\Strategy\Notifier;
 
 use Hj\Collector\ErrorCollector;
+use Hj\Config\MailsConfig;
 use Hj\YamlConfigLoader;
 
 /**
@@ -29,15 +30,23 @@ class NotifyAdminStrategyWhenErrorOccured implements NotifierStrategy
     private $bodyMessage;
 
     /**
+     * @var MailsConfig
+     */
+    private $mailsConfig;
+
+    /**
      * NotifyAdminStrategyWhenErrorOccured constructor.
+     * @param MailsConfig $mailsConfig
      * @param ErrorCollector $errorCollector
      * @param string $bodyMessage
      */
     public function __construct(
+        MailsConfig $mailsConfig,
         ErrorCollector $errorCollector,
         $bodyMessage
     )
     {
+        $this->mailsConfig = $mailsConfig;
         $this->errorCollector = $errorCollector;
         $this->bodyMessage = $bodyMessage;
     }
@@ -61,10 +70,11 @@ class NotifyAdminStrategyWhenErrorOccured implements NotifierStrategy
     /**
      * @param YamlConfigLoader $configLoader
      * @return array
+     * @throws \Hj\Exception\KeyNotExist
      */
     public function getSendTo(YamlConfigLoader $configLoader)
     {
-        return $configLoader->getAdminsMails();
+        return $this->mailsConfig->getAdmins()->getValue();
     }
 
     /**

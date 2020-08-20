@@ -17,6 +17,7 @@ use Hj\Directory\WaitingDirectory;
 use Hj\Error\File\DirectoryNotExistError;
 use Hj\Error\FtpFailureConnexion;
 use Hj\Error\FtpFailureDownloadFile;
+use Hj\Factory\MailConfigFactory;
 use Hj\Factory\MailHandlerFactory;
 use Hj\Helper\CatchedErrorHandler;
 use Hj\Notifier\MailNotifier;
@@ -163,12 +164,16 @@ class MigrateFileFromDistant extends AbstractCommand
             )
         );
 
+        $mailsConfigs = (new MailConfigFactory())->createConfig($yamlConfigFilePath);
+
         $notifyStrategies = [
             new NotifyAdminStrategyWhenErrorOccured(
+                $mailsConfigs,
                 $this->errorCollector,
                 "Spreadsheet-etl had encountered the belows errors when migrating file from the server : \n\n"
             ),
             new NotifyAdminStrategyOnSuccesfull(
+                $mailsConfigs,
                 $this->errorCollector,
                 'Spreadsheet-etl : file migration from FTP server',
                 $migrationMessageOnSuccesfull
@@ -176,6 +181,7 @@ class MigrateFileFromDistant extends AbstractCommand
         ];
 
         $mailNotifier = new MailNotifier(
+            $mailsConfigs,
             new HtmlFormatterAdapter(
                 "d/m/Y"
             ),
