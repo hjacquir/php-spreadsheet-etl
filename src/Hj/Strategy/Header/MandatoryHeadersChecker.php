@@ -13,7 +13,6 @@ use Hj\Config\FileHeadersConfig;
 use Hj\Directory\BaseDirectory;
 use Hj\Error\MandatoryHeaderMissing;
 use Hj\Strategy\Strategy;
-use Hj\YamlConfigLoader;
 
 /**
  * Class MandatoryHeadersChecker
@@ -37,11 +36,6 @@ class MandatoryHeadersChecker implements Strategy
     private $error;
 
     /**
-     * @var YamlConfigLoader
-     */
-    private $configLoader;
-
-    /**
      * @var HeaderExtraction
      */
     private $extractHeaderStrategy;
@@ -57,7 +51,6 @@ class MandatoryHeadersChecker implements Strategy
      * @param BaseDirectory $inProcessingDir
      * @param ErrorCollector $errorCollector
      * @param MandatoryHeaderMissing $error
-     * @param YamlConfigLoader $configLoader
      * @param HeaderExtraction $extractHeaderStrategy
      */
     public function __construct(
@@ -65,7 +58,6 @@ class MandatoryHeadersChecker implements Strategy
         BaseDirectory $inProcessingDir,
         ErrorCollector $errorCollector,
         MandatoryHeaderMissing $error,
-        YamlConfigLoader $configLoader,
         HeaderExtraction $extractHeaderStrategy
     )
     {
@@ -73,7 +65,6 @@ class MandatoryHeadersChecker implements Strategy
         $this->inProcessingDir = $inProcessingDir;
         $this->errorCollector = $errorCollector;
         $this->error = $error;
-        $this->configLoader = $configLoader;
         $this->extractHeaderStrategy = $extractHeaderStrategy;
     }
 

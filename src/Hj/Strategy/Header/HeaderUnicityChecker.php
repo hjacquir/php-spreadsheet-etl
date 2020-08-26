@@ -11,7 +11,6 @@ use Hj\Collector\ErrorCollector;
 use Hj\Directory\BaseDirectory;
 use Hj\Error\DuplicateHeaderError;
 use Hj\Strategy\Strategy;
-use Hj\YamlConfigLoader;
 
 /**
  * Class HeaderUnicityChecker
@@ -30,11 +29,6 @@ class HeaderUnicityChecker implements Strategy
     private $extractHeaderStrategy;
 
     /**
-     * @var YamlConfigLoader
-     */
-    private $configLoader;
-
-    /**
      * @var ErrorCollector
      */
     private $errorCollector;
@@ -48,21 +42,18 @@ class HeaderUnicityChecker implements Strategy
      * HeaderUnicityChecker constructor.
      * @param BaseDirectory $inProcessingDir
      * @param HeaderExtraction $extractHeaderStrategy
-     * @param YamlConfigLoader $configLoader
      * @param ErrorCollector $errorCollector
      * @param DuplicateHeaderError $duplicateHeaderError
      */
     public function __construct(
         BaseDirectory $inProcessingDir,
         HeaderExtraction $extractHeaderStrategy,
-        YamlConfigLoader $configLoader,
         ErrorCollector $errorCollector,
         DuplicateHeaderError $duplicateHeaderError
     )
     {
         $this->inProcessingDir = $inProcessingDir;
         $this->extractHeaderStrategy = $extractHeaderStrategy;
-        $this->configLoader = $configLoader;
         $this->errorCollector = $errorCollector;
         $this->duplicateHeaderError = $duplicateHeaderError;
     }

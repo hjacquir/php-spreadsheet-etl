@@ -7,8 +7,6 @@
 
 namespace Hj\Strategy\Notifier;
 
-use Hj\YamlConfigLoader;
-
 /**
  * Interface NotifierStrategy
  * @package Hj\Strategy\Notifier
@@ -26,10 +24,9 @@ interface NotifierStrategy
     public function getErrors();
 
     /**
-     * @param YamlConfigLoader $configLoader
      * @return array
      */
-    public function getSendTo(YamlConfigLoader $configLoader);
+    public function getSendTo();
 
     /**
      * @return string

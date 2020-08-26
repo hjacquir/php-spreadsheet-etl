@@ -17,8 +17,11 @@ use Hj\Directory\WaitingDirectory;
 use Hj\Error\File\DirectoryNotExistError;
 use Hj\Error\FtpFailureConnexion;
 use Hj\Error\FtpFailureDownloadFile;
+use Hj\Factory\FilePathConfigFactory;
+use Hj\Factory\FtpConfigFactory;
 use Hj\Factory\MailConfigFactory;
 use Hj\Factory\MailHandlerFactory;
+use Hj\Factory\SmtpConfigFactory;
 use Hj\Helper\CatchedErrorHandler;
 use Hj\Notifier\MailNotifier;
 use Hj\Processor\FileProcessor;
@@ -26,7 +29,6 @@ use Hj\Strategy\File\MigrateFileStrategy;
 use Hj\Strategy\Notifier\NotifyAdminStrategyOnSuccesfull;
 use Hj\Strategy\Notifier\NotifyAdminStrategyWhenErrorOccured;
 use Hj\Validator\ConfigFileValidator;
-use Hj\YamlConfigLoader;
 use Monolog\Logger;
 use Swift_Mailer;
 use Swift_Message;
@@ -96,16 +98,13 @@ class MigrateFileFromDistant extends AbstractCommand
         $this->logger->debug("Starting file migration from the ftp server ...");
 
         $yamlConfigFilePath = $input->getArgument(self::YAML_CONTEXT_FILE_ARGUMENT);
-        $configLoader = new YamlConfigLoader(
-            $yamlConfigFilePath,
-            new ConfigFileValidator(
-                $yamlConfigFilePath
-            )
-        );
-        $ftpHost = $configLoader->getFtpHost();
-        $ftpUsername = $configLoader->getFtpUsername();
-        $ftpPassword = $configLoader->getFtpPassword();
-        $ftpPort = $configLoader->getFtpPort();
+
+        $ftpConfigs = (new FtpConfigFactory())->createConfig($yamlConfigFilePath);
+
+        $ftpHost = $ftpConfigs->getHost()->getValue();
+        $ftpUsername = $ftpConfigs->getUserName()->getValue();
+        $ftpPassword = $ftpConfigs->getPassword()->getValue();
+        $ftpPort = $ftpConfigs->getPort()->getValue();
 
         $this->errorCollector = new ErrorCollector(
             new CollectorIterator()
@@ -122,9 +121,11 @@ class MigrateFileFromDistant extends AbstractCommand
         try {
             $connection->open();
             $ftp = new FtpWrapper($connection);
+            $filePathConfig = (new FilePathConfigFactory())->createConfig($yamlConfigFilePath);
+
             $waitingDirectory = new WaitingDirectory(
                 new BaseDirectory(
-                    $configLoader->getWaitingFilePath(),
+                    $filePathConfig->getWaitingDir()->getValue(),
                     new CatchedErrorHandler(
                         $this->errorCollector
                     ),
@@ -132,9 +133,9 @@ class MigrateFileFromDistant extends AbstractCommand
                 )
             );
             $migrationStrategy = new MigrateFileStrategy(
+                $ftpConfigs,
                 $waitingDirectory,
                 $ftp,
-                $configLoader,
                 $this->logger,
                 $this->errorCollector,
                 new FtpFailureDownloadFile()
@@ -156,10 +157,12 @@ class MigrateFileFromDistant extends AbstractCommand
 
         $swiftMessage = new Swift_Message();
 
+        $smtpConfigs = (new SmtpConfigFactory())->createConfig($yamlConfigFilePath);
+
         $handlerFactory = new MailHandlerFactory(
             new Swift_Mailer(
                 new Swift_SmtpTransport(
-                    $configLoader->getSmtpHost()
+                    $smtpConfigs->getHost()->getValue()
                 )
             )
         );
@@ -187,7 +190,6 @@ class MigrateFileFromDistant extends AbstractCommand
             ),
             $notifyStrategies,
             $swiftMessage,
-            $configLoader,
             $handlerFactory,
             $this->logger,
             []

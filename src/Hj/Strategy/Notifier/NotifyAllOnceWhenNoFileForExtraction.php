@@ -9,7 +9,6 @@ namespace Hj\Strategy\Notifier;
 
 use Hj\Config\MailsConfig;
 use Hj\Directory\WaitingDirectory;
-use Hj\YamlConfigLoader;
 
 /**
  * Class NotifyAllOnceWhenNoFileForExtraction
@@ -58,11 +57,10 @@ class NotifyAllOnceWhenNoFileForExtraction implements NotifierStrategy
     }
 
     /**
-     * @param YamlConfigLoader $configLoader
      * @return array
      * @throws \Hj\Exception\KeyNotExist
      */
-    public function getSendTo(YamlConfigLoader $configLoader)
+    public function getSendTo()
     {
         $users = $this->mailsConfig->getUsers()->getValue();
         $admins = $this->mailsConfig->getAdmins()->getValue();

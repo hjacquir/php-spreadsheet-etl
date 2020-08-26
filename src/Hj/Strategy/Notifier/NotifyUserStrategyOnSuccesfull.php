@@ -11,7 +11,6 @@ use Hj\Collector\ErrorCollector;
 use Hj\Config\MailsConfig;
 use Hj\Strategy\Database\SaveDatasOnDatabase;
 use Hj\Strategy\File\Archive;
-use Hj\YamlConfigLoader;
 
 /**
  * Class NotifyUserStrategyOnSuccesfull
@@ -68,11 +67,10 @@ class NotifyUserStrategyOnSuccesfull implements NotifierStrategy
     }
 
     /**
-     * @param YamlConfigLoader $configLoader
      * @return array
      * @throws \Hj\Exception\KeyNotExist
      */
-    public function getSendTo(YamlConfigLoader $configLoader)
+    public function getSendTo()
     {
         return $this->mailsConfig->getUsers()->getValue();
     }

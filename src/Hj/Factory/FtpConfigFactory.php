@@ -7,7 +7,6 @@
 
 namespace Hj\Factory;
 
-use Hj\Config\Config;
 use Hj\Config\FtpConfig;
 use Hj\Observer\YamlValueIsArrayValidationObserver;
 use Hj\Observer\YamlValueIsStringValidationObserver;

@@ -8,7 +8,6 @@
 namespace Hj\Strategy\Notifier;
 
 use Hj\Strategy\Admin\NotificationAlreadySendOnError;
-use Hj\YamlConfigLoader;
 
 /**
  * Class NotifyAdminStrategyWhenErrorOccuredOnlyOnce
@@ -58,12 +57,12 @@ class NotifyAdminStrategyWhenErrorOccuredOnlyOnce implements NotifierStrategy
     }
 
     /**
-     * @param YamlConfigLoader $configLoader
      * @return array
+     * @throws \Hj\Exception\KeyNotExist
      */
-    public function getSendTo(YamlConfigLoader $configLoader)
+    public function getSendTo()
     {
-        return $this->notifyAdminStrategyWhenErrorOccured->getSendTo($configLoader);
+        return $this->notifyAdminStrategyWhenErrorOccured->getSendTo();
     }
 
     /**

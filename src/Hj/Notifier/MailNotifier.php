@@ -12,7 +12,6 @@ use Hj\Error\Error;
 use Hj\Factory\MailHandlerFactory;
 use Hj\Strategy\Notifier\NotifierStrategy;
 use Hj\Strategy\Strategy;
-use Hj\YamlConfigLoader;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Logger;
 use Swift_Message;
@@ -37,11 +36,6 @@ class MailNotifier implements Notifier
      * @var Swift_Message
      */
     private $swiftMessage;
-
-    /**
-     * @var YamlConfigLoader
-     */
-    private $configLoader;
 
     /**
      * @var MailHandlerFactory
@@ -79,7 +73,6 @@ class MailNotifier implements Notifier
      * @param FormatterInterface $formatter
      * @param array $mailNotifierStrategies
      * @param Swift_Message $swiftMessage
-     * @param YamlConfigLoader $configLoader
      * @param MailHandlerFactory $factory
      * @param Logger $logger
      * @param array $addAttachmentStrategies
@@ -89,7 +82,6 @@ class MailNotifier implements Notifier
         FormatterInterface $formatter,
         array $mailNotifierStrategies,
         Swift_Message $swiftMessage,
-        YamlConfigLoader $configLoader,
         MailHandlerFactory $factory,
         Logger $logger,
         array $addAttachmentStrategies
@@ -98,7 +90,6 @@ class MailNotifier implements Notifier
         $this->formatter = $formatter;
         $this->mailNotifierStrategies = $mailNotifierStrategies;
         $this->swiftMessage = $swiftMessage;
-        $this->configLoader = $configLoader;
         $this->factory = $factory;
         $this->logger = $logger;
         $this->attachmentStrategies = $addAttachmentStrategies;
@@ -119,7 +110,7 @@ class MailNotifier implements Notifier
             if ($mailNotifierStrategy->isAppropriate()) {
                 $this->swiftMessage->setSubject($mailNotifierStrategy->getSubject());
                 $this->errors = $mailNotifierStrategy->getErrors();
-                $this->sendTo = $mailNotifierStrategy->getSendTo($this->configLoader);
+                $this->sendTo = $mailNotifierStrategy->getSendTo();
                 $bodyMessage = $mailNotifierStrategy->getBodyMessage();
 
                 $this->contextualNotify($bodyMessage);

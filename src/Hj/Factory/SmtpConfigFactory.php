@@ -7,7 +7,6 @@
 
 namespace Hj\Factory;
 
-use Hj\Config\Config;
 use Hj\Config\SmtpConfig;
 use Hj\Observer\YamlValueIsArrayValidationObserver;
 use Hj\Observer\YamlValueIsStringValidationObserver;

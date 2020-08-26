@@ -12,7 +12,6 @@ use Hj\Config\FileHeadersConfig;
 use Hj\Error\ConfigFileMismatchError;
 use Hj\File\Field\AbstractField;
 use Hj\Strategy\Strategy;
-use Hj\YamlConfigLoader;
 
 /**
  * Compare file mandatory header defined in config file with field defined for extraction
@@ -22,11 +21,6 @@ use Hj\YamlConfigLoader;
  */
 class CheckFieldConfigStrategy implements Strategy
 {
-    /**
-     * @var YamlConfigLoader
-     */
-    private $configLoader;
-
     /**
      * @var AbstractField[]
      */
@@ -50,21 +44,18 @@ class CheckFieldConfigStrategy implements Strategy
     /**
      * CheckFieldConfigStrategy constructor.
      * @param FileHeadersConfig $fileHeadersConfig
-     * @param YamlConfigLoader $configLoader
      * @param AbstractField[] $fields
      * @param ErrorCollector $errorCollector
      * @param ConfigFileMismatchError $associatedError
      */
     public function __construct(
         FileHeadersConfig $fileHeadersConfig,
-        YamlConfigLoader $configLoader,
         array $fields,
         ErrorCollector $errorCollector,
         ConfigFileMismatchError $associatedError
     )
     {
         $this->fileHeadersConfig = $fileHeadersConfig;
-        $this->configLoader = $configLoader;
         $this->fields = $fields;
         $this->errorCollector = $errorCollector;
         $this->associatedError = $associatedError;

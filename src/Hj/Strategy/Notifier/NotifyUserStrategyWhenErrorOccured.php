@@ -10,7 +10,6 @@ namespace Hj\Strategy\Notifier;
 use Hj\Collector\ErrorCollector;
 use Hj\Config\MailsConfig;
 use Hj\Strategy\File\CopyToFailureDirectory;
-use Hj\YamlConfigLoader;
 
 /**
  * Class NotifyUserStrategyWhenErrorOccured
@@ -68,11 +67,10 @@ class NotifyUserStrategyWhenErrorOccured implements NotifierStrategy
     }
 
     /**
-     * @param YamlConfigLoader $configLoader
      * @return array
      * @throws \Hj\Exception\KeyNotExist
      */
-    public function getSendTo(YamlConfigLoader $configLoader)
+    public function getSendTo()
     {
         return $this->mailsConfig->getUsers()->getValue();
     }

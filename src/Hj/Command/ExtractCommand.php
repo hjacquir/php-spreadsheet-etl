@@ -36,8 +36,10 @@ use Hj\Error\MandatoryHeaderMissing;
 use Hj\Extractor;
 use Hj\Factory\DatabaseConfigFactory;
 use Hj\Factory\FileHeaderConfigFactory;
+use Hj\Factory\FilePathConfigFactory;
 use Hj\Factory\MailConfigFactory;
 use Hj\Factory\MailHandlerFactory;
+use Hj\Factory\SmtpConfigFactory;
 use Hj\File\CellAdapter;
 use Hj\File\Field\BirthDate;
 use Hj\File\Field\FirstName;
@@ -90,7 +92,6 @@ use Hj\Validator\ConfigFileValidator;
 use Hj\Validator\Data\DataDateFormatValidator;
 use Hj\Validator\Data\DataLengthReachedValidator;
 use Hj\Validator\Data\DataMandatoryValidator;
-use Hj\YamlConfigLoader;
 use Monolog\Logger;
 use Swift_Mailer;
 use Swift_Message;
@@ -176,17 +177,12 @@ class ExtractCommand extends AbstractCommand
 
         $yamlConfigFilePath = $input->getArgument(self::YAML_CONTEXT_FILE_ARGUMENT);
 
-        $configLoader = new YamlConfigLoader(
-            $yamlConfigFilePath,
-            new ConfigFileValidator(
-                $yamlConfigFilePath
-            )
-        );
+        $filePathConfig = (new FilePathConfigFactory())->createConfig($yamlConfigFilePath);
 
-        $waitingDir = $configLoader->getWaitingFilePath();
-        $inProcessingDir = $configLoader->getInProcessingFilePath();
-        $archivedDir = $configLoader->getArchivedFilePath();
-        $failureFilePath = $configLoader->getFailureFilePath();
+        $waitingDir = $filePathConfig->getWaitingDir()->getValue();
+        $inProcessingDir = $filePathConfig->getInProcessing()->getValue();
+        $archivedDir = $filePathConfig->getArchived()->getValue();
+        $failureFilePath = $filePathConfig->getFailure()->getValue();
 
         $fileManipulator = new FileManipulator();
         $this->errorCollector = new ErrorCollector(new CollectorIterator());
@@ -303,7 +299,6 @@ class ExtractCommand extends AbstractCommand
         // defined into the .yaml config file
         $checkFieldConfigStrategy = new CheckFieldConfigStrategy(
             $fileHeadersConfig,
-            $configLoader,
             $fieldsToExtract,
             $this->errorCollector,
             new ConfigFileMismatchError()
@@ -322,7 +317,6 @@ class ExtractCommand extends AbstractCommand
             __DIR__ . "/../../../doctrine",
             __DIR__ . "/../../../doctrineProxies",
             true,
-            $configLoader,
             new DatabaseConnexionError(),
             $waitingDirectory
         );
@@ -397,7 +391,6 @@ class ExtractCommand extends AbstractCommand
             $inProcessingDirectory,
             $this->errorCollector,
             new MandatoryHeaderMissing(),
-            $configLoader,
             $extractHeaderStrategy
         );
 
@@ -405,7 +398,6 @@ class ExtractCommand extends AbstractCommand
         $checkUnicityHeader = new HeaderUnicityChecker(
             $inProcessingDirectory,
             $extractHeaderStrategy,
-            $configLoader,
             $this->errorCollector,
             new DuplicateHeaderError()
         );
@@ -579,9 +571,11 @@ class ExtractCommand extends AbstractCommand
 
         $swiftMessage = new Swift_Message();
 
+        $smtpConfigs = (new SmtpConfigFactory())->createConfig($yamlConfigFilePath);
+
         $mailer = new Swift_Mailer(
             new Swift_SmtpTransport(
-                $configLoader->getSmtpHost()
+                $smtpConfigs->getHost()->getValue()
             )
         );
 
@@ -618,7 +612,6 @@ class ExtractCommand extends AbstractCommand
             ),
             $notifyStrategies,
             $swiftMessage,
-            $configLoader,
             $handlerFactory,
             $this->logger,
             [

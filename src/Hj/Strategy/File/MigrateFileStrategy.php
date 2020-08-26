@@ -9,10 +9,10 @@ namespace Hj\Strategy\File;
 
 use Buuum\Ftp\FtpWrapper;
 use Hj\Collector\ErrorCollector;
+use Hj\Config\FtpConfig;
 use Hj\Directory\WaitingDirectory;
 use Hj\Error\FtpFailureDownloadFile;
 use Hj\Strategy\Strategy;
-use Hj\YamlConfigLoader;
 use Monolog\Logger;
 
 /**
@@ -25,12 +25,6 @@ class MigrateFileStrategy implements Strategy
      * @var FtpWrapper
      */
     private $ftpWrapper;
-
-
-    /**
-     * @var YamlConfigLoader
-     */
-    private $configLoader;
 
     /**
      * @var Logger
@@ -58,27 +52,32 @@ class MigrateFileStrategy implements Strategy
     private $waitingDirectory;
 
     /**
+     * @var FtpConfig
+     */
+    private $ftpConfig;
+
+    /**
      * MigrateFileStrategy constructor.
      *
+     * @param FtpConfig $ftpConfig
      * @param WaitingDirectory $waitingDirectory
      * @param FtpWrapper $ftpWrapper
-     * @param YamlConfigLoader $configLoader
      * @param Logger $logger
      * @param ErrorCollector $errorCollector
      * @param FtpFailureDownloadFile $ftpDownloadFailureError
      */
     public function __construct(
+        FtpConfig $ftpConfig,
         WaitingDirectory $waitingDirectory,
         FtpWrapper $ftpWrapper,
-        YamlConfigLoader $configLoader,
         Logger $logger,
         ErrorCollector $errorCollector,
         FtpFailureDownloadFile $ftpDownloadFailureError
     )
     {
+        $this->ftpConfig = $ftpConfig;
         $this->waitingDirectory = $waitingDirectory;
         $this->ftpWrapper = $ftpWrapper;
-        $this->configLoader = $configLoader;
         $this->logger = $logger;
         $this->errorCollector = $errorCollector;
         $this->ftpDownloadFailureError = $ftpDownloadFailureError;
@@ -92,9 +91,16 @@ class MigrateFileStrategy implements Strategy
         return false === $this->errorCollector->hasError();
     }
 
+    /**
+     * @throws \Hj\Exception\KeyNotExist
+     */
     public function apply()
     {
-        $distantDirectories = $this->ftpWrapper->nlist($this->configLoader->getFtpDirectory());
+        $ftpDirectory = $this->ftpConfig
+            ->getDirectory()
+            ->getValue();
+
+        $distantDirectories = $this->ftpWrapper->nlist($ftpDirectory);
 
         foreach ($distantDirectories as $distantDirectory) {
             $currentDirFiles = $this->ftpWrapper->nlist($distantDirectory);
@@ -148,10 +154,15 @@ class MigrateFileStrategy implements Strategy
     /**
      * @param string $filePath
      * @return string
+     * @throws \Hj\Exception\KeyNotExist
      */
     private function generateLocalFileName($filePath)
     {
+        $ftpDirectory = $this->ftpConfig
+            ->getHost()
+            ->getValue();
+
         return $this->waitingDirectory->getBasePath() .
-            str_replace($this->configLoader->getFtpDirectory(), "", $filePath);
+            str_replace($ftpDirectory, "", $filePath);
     }
 }

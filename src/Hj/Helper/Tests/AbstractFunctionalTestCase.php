@@ -14,7 +14,6 @@ use Hj\Command\AbstractCommand;
 use Hj\Error\Error;
 use Hj\Factory\DatabaseConfigFactory;
 use Hj\Validator\ConfigFileValidator;
-use Hj\YamlConfigLoader;
 use Monolog\Logger;
 use Nelmio\Alice\Loader\NativeLoader;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -288,13 +287,6 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
     protected function getEntityManager()
     {
         if (is_null($this->entityManager)) {
-            $configLoader = new YamlConfigLoader(
-                $this->getTestConfigFileFolderPath() . "configFileWithoutError.yaml",
-                new ConfigFileValidator(
-                    $this->getTestConfigFileFolderPath() . "configFileWithoutError.yaml"
-                )
-            );
-
             $config = Setup::createXMLMetadataConfiguration(array($this->getCurrentContextualDir() . "/../../../doctrine"));
             $config->setProxyDir($this->getCurrentContextualDir() . "/../../../doctrineProxies");
             $config->setAutoGenerateProxyClasses(true);

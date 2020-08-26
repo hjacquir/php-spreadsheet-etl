@@ -9,7 +9,6 @@ namespace Hj\Strategy\Notifier;
 
 use Hj\Collector\ErrorCollector;
 use Hj\Config\MailsConfig;
-use Hj\YamlConfigLoader;
 
 /**
  * Class NotifyAdminStrategyOnSuccesfull
@@ -66,11 +65,10 @@ class NotifyAdminStrategyOnSuccesfull implements NotifierStrategy
     }
 
     /**
-     * @param YamlConfigLoader $configLoader
      * @return array
      * @throws \Hj\Exception\KeyNotExist
      */
-    public function getSendTo(YamlConfigLoader $configLoader)
+    public function getSendTo()
     {
         return $this->mailsConfig
             ->getUsers()

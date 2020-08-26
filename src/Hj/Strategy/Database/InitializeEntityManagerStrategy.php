@@ -15,7 +15,6 @@ use Hj\Error\Database\DatabaseConnexionError;
 use Hj\Exception\AttributeNotSetException;
 use Hj\Helper\CatchedErrorHandler;
 use Hj\Strategy\Strategy;
-use Hj\YamlConfigLoader;
 
 /**
  * Class InitializeEntityManagerStrategy
@@ -45,11 +44,6 @@ class InitializeEntityManagerStrategy implements Strategy
      * @var bool
      */
     private $autoGenerateProxyClasses;
-
-    /**
-     * @var YamlConfigLoader
-     */
-    private $configLoader;
 
     /**
      * @var DatabaseConnexionError
@@ -88,7 +82,6 @@ class InitializeEntityManagerStrategy implements Strategy
      * @param string $annotationXmlPath
      * @param string $proxyDirPath
      * @param bool $autoGenerateProxyClasses
-     * @param YamlConfigLoader $configLoader
      * @param DatabaseConnexionError $databaseError
      * @param Directory $waitingDirectory
      */
@@ -98,7 +91,6 @@ class InitializeEntityManagerStrategy implements Strategy
         $annotationXmlPath,
         $proxyDirPath,
         $autoGenerateProxyClasses,
-        YamlConfigLoader $configLoader,
         DatabaseConnexionError $databaseError,
         Directory $waitingDirectory
     )
@@ -107,7 +99,6 @@ class InitializeEntityManagerStrategy implements Strategy
         $this->annotationXmlPath = $annotationXmlPath;
         $this->autoGenerateProxyClasses = $autoGenerateProxyClasses;
         $this->proxyDirPath = $proxyDirPath;
-        $this->configLoader = $configLoader;
         $this->databaseError = $databaseError;
         $this->waitingDirectory = $waitingDirectory;
         $this->catchedErrorHandler = $catchedErrorHandler;
