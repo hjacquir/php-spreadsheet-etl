@@ -40,6 +40,12 @@ Install all the dependencies via composer: `composer install`
 
 ## Usage
 
+* Copy-paste the file : `config.yaml.example` and rename it `config.yaml` for example. 
+Regardless of the name of the configuration file. 
+The important thing is that it is in YAML.
+* Use your custom value of config in your `config.yaml` file.
+* You ca get list of command with description by doing : `php console.php` in a shell
+
 ## Tests
 
 Unit and functional tests are launched on the local workstation dedicated 

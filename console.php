@@ -3,6 +3,7 @@
 <?php
 
 use Hj\Command\ExtractCommand;
+use Hj\Command\MigrateFileFromDistant;
 use Hj\Command\ResetFlagAdminErrorOccured;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
@@ -31,7 +32,8 @@ try {
 $application = new Application();
 $application->add(new ExtractCommand($logger));
 $application->add(new ResetFlagAdminErrorOccured($logger));
-$application->add(new \Hj\Command\MigrateFileFromDistant($logger));
+$application->add(new MigrateFileFromDistant($logger));
+$application->add(new \Hj\Command\CheckIfFileWaitingForExtractionExist($logger));
 
 try {
     $application->run();

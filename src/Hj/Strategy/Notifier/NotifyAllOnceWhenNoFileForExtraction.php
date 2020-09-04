@@ -73,10 +73,10 @@ class NotifyAllOnceWhenNoFileForExtraction implements NotifierStrategy
      */
     public function getBodyMessage()
     {
-        return "EDIR s'est bien éxécuté, mais la file d'attente des fichiers candidats à l'extraction est vide. " .
-            "En effet, aucun fichier n'a été déposé récemment." .
+        return "Spreadsheet-etl was successful, but the queue of files to be checked out is empty. ".
+            "Indeed, no files have been uploaded recently." .
             "\n" .
-            "A bientôt.";
+            "See you soon.";
     }
 
     /**
@@ -84,6 +84,6 @@ class NotifyAllOnceWhenNoFileForExtraction implements NotifierStrategy
      */
     public function getSubject()
     {
-        return "EDIR : aucun fichier à extraire";
+        return "Spreadsheet-etl : no file to extract";
     }
 }
