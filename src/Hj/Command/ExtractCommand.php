@@ -7,10 +7,8 @@
 
 namespace Hj\Command;
 
+use Doctrine\Instantiator\Instantiator;
 use Hj\Adapter\HtmlFormatterAdapter;
-use Hj\Cloner\CellAdapterCloner;
-use Hj\Cloner\PersonCloner;
-use Hj\Cloner\RowAdapterCloner;
 use Hj\Collector\CollectorIterator;
 use Hj\Collector\ErrorCollector;
 use Hj\Collector\RowCollector;
@@ -40,14 +38,11 @@ use Hj\Factory\FilePathConfigFactory;
 use Hj\Factory\MailConfigFactory;
 use Hj\Factory\MailHandlerFactory;
 use Hj\Factory\SmtpConfigFactory;
-use Hj\File\CellAdapter;
 use Hj\File\Field\BirthDate;
 use Hj\File\Field\FirstName;
 use Hj\File\Field\LastName;
-use Hj\File\RowAdapter;
 use Hj\FileManipulator;
 use Hj\Helper\CatchedErrorHandler;
-use Hj\Model\Person;
 use Hj\Normalizer\AccentsRemoverNormalizer;
 use Hj\Normalizer\DateStringExcelNormalizer;
 use Hj\Normalizer\RemoveSpaceNormalizer;
@@ -410,13 +405,13 @@ class ExtractCommand extends AbstractCommand
         );
 
         // collect rows with their associated cells with the appropriate header
+        $instantiator = new Instantiator();
         $collectRowAdapterStrategy = new CollectRowAdapterStrategy(
+            $instantiator,
             $this->errorCollector,
             new DateStringExcelNormalizer($birthDate),
             $inProcessingDirectory,
             new RowCollector(new CollectorIterator()),
-            new RowAdapterCloner(new RowAdapter()),
-            new CellAdapterCloner(new CellAdapter()),
             $rowsExtractionStrategy,
             $extractHeaderStrategy,
             $trimNormalizer,
@@ -433,7 +428,7 @@ class ExtractCommand extends AbstractCommand
         );
 
         $saveDataToDatabase = new SaveDatasOnDatabase(
-            new PersonCloner(new Person()),
+            $instantiator,
             $firstName,
             $lastName,
             $birthDate,

@@ -8,9 +8,12 @@
 namespace Hj\Strategy\Database;
 
 use DateTime;
-use Hj\Cloner\PersonCloner;
+use Doctrine\Instantiator\Exception\ExceptionInterface;
+use Doctrine\Instantiator\Instantiator;
+use Exception;
 use Hj\Directory\BaseDirectory;
 use Hj\Error\Database\DoctrinePersistenceError;
+use Hj\Exception\AttributeNotSetException;
 use Hj\File\Field\BirthDate;
 use Hj\File\Field\FirstName;
 use Hj\File\Field\LastName;
@@ -48,11 +51,6 @@ class SaveDatasOnDatabase implements Strategy
     private $catchedErrorHandler;
 
     /**
-     * @var PersonCloner
-     */
-    private $personCloner;
-
-    /**
      * @var CollectRowAdapterStrategy
      */
     private $collectRowAdapterStrategy;
@@ -78,9 +76,14 @@ class SaveDatasOnDatabase implements Strategy
     private $savedDatas = [];
 
     /**
+     * @var Instantiator
+     */
+    private Instantiator $instantiator;
+
+    /**
      * SaveAntibiogrammeWithResultat constructor.
      *
-     * @param PersonCloner $personCloner
+     * @param Instantiator $instantiator
      * @param FirstName $firstName
      * @param LastName $lastName
      * @param BirthDate $birthDate
@@ -91,7 +94,7 @@ class SaveDatasOnDatabase implements Strategy
      * @param BaseDirectory $inProcessingDir
      */
     public function __construct(
-        PersonCloner $personCloner,
+        Instantiator $instantiator,
         FirstName $firstName,
         LastName $lastName,
         BirthDate $birthDate,
@@ -102,7 +105,7 @@ class SaveDatasOnDatabase implements Strategy
         BaseDirectory $inProcessingDir
     )
     {
-        $this->personCloner = $personCloner;
+        $this->instantiator = $instantiator;
         $this->firstName = $firstName;
         $this->lastName = $lastName;
         $this->birthDate = $birthDate;
@@ -124,8 +127,8 @@ class SaveDatasOnDatabase implements Strategy
     }
 
     /**
-     * @throws \Hj\Exception\AttributeNotSetException
-     * @throws \ReflectionException
+     * @throws AttributeNotSetException
+     * @throws ExceptionInterface
      */
     public function apply()
     {
@@ -144,7 +147,8 @@ class SaveDatasOnDatabase implements Strategy
             $birthDate = $currentRow->getCellNormalizedValueByField($this->birthDate);
 
             /** @var Person $person */
-            $person = $this->personCloner->replicate();
+            $person = $this->instantiator
+                ->instantiate(Person::class);
             $person->setBirthDate(DateTime::createFromFormat(BirthDate::DATE_DATABASE_FORMAT, $birthDate));
             $person->setFirstName($firstName);
             $person->setLastName($lastName);
@@ -154,7 +158,7 @@ class SaveDatasOnDatabase implements Strategy
                     $entityManager->persist($person);
                     $entityManager->flush($person);
                     array_push($this->savedDatas, $person);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $persistenceErrorThrown = true;
                     $this->catchedErrorHandler->handleErrorWhenPersistenceErrorOccurred($e, $this->associatedError);
                 }

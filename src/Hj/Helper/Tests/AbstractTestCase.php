@@ -7,8 +7,6 @@
 
 namespace Hj\Helper\Tests;
 
-use Hj\Cloner\CellAdapterCloner;
-use Hj\Cloner\RowAdapterCloner;
 use Hj\Collector\ErrorCollector;
 use Hj\Collector\RowCollector;
 use Hj\Directory\BaseDirectory;
@@ -38,16 +36,6 @@ class AbstractTestCase extends TestCase
      * @var RowCollector|MockObject
      */
     private $rowCollector;
-
-    /**
-     * @var RowAdapterCloner|MockObject
-     */
-    private $rowAdapterCloner;
-
-    /**
-     * @var CellAdapterCloner|MockObject
-     */
-    private $cellAdapterCloner;
 
     /**
      * @var RowsExtractionStrategy|MockObject
@@ -83,8 +71,6 @@ class AbstractTestCase extends TestCase
     {
         $this->inProcessingDir = $this->getMockConstructorDisabled(BaseDirectory::class);
         $this->rowCollector = $this->getMockConstructorDisabled(RowCollector::class);
-        $this->rowAdapterCloner = $this->getMockConstructorDisabled(RowAdapterCloner::class);
-        $this->cellAdapterCloner = $this->getMockConstructorDisabled(CellAdapterCloner::class);
         $this->rowsExtractionStrategy = $this->getMockConstructorDisabled(RowsExtractionStrategy::class);
         $this->headerExtractionStrategy = $this->getMockConstructorDisabled(HeaderExtraction::class);
         $this->accentsRemoverNormalizer = $this->getMockConstructorDisabled(AccentsRemoverNormalizer::class);
@@ -156,22 +142,6 @@ class AbstractTestCase extends TestCase
     public function getRowCollector()
     {
         return $this->rowCollector;
-    }
-
-    /**
-     * @return RowAdapterCloner|MockObject
-     */
-    public function getRowAdapterCloner()
-    {
-        return $this->rowAdapterCloner;
-    }
-
-    /**
-     * @return CellAdapterCloner|MockObject
-     */
-    public function getCellAdapterCloner()
-    {
-        return $this->cellAdapterCloner;
     }
 
     /**

@@ -8,6 +8,7 @@
 namespace Hj\Yaml\Child;
 
 use Hj\Exception\KeyNotExist;
+use Hj\Exception\WrongTypeException;
 use Hj\Observer\YamlValueValidationObserver;
 use Hj\Yaml\Component;
 use SplObserver;
@@ -29,7 +30,7 @@ abstract class AbstractChildComponent implements Component,\SplSubject
      * @param Component $rootComponent
      * @param YamlValueValidationObserver $yamlValueValidationObserver
      * @throws KeyNotExist
-     * @throws \Hj\Exception\WrongTypeException
+     * @throws WrongTypeException
      */
     public function __construct(
         Component $rootComponent,

@@ -7,8 +7,8 @@
 
 namespace Hj\Strategy\Data;
 
-use Hj\Cloner\CellAdapterCloner;
-use Hj\Cloner\RowAdapterCloner;
+use Doctrine\Instantiator\Exception\ExceptionInterface;
+use Doctrine\Instantiator\Instantiator;
 use Hj\Collector\ErrorCollector;
 use Hj\Collector\RowCollector;
 use Hj\Directory\BaseDirectory;
@@ -21,6 +21,7 @@ use Hj\Normalizer\TrimNormalizer;
 use Hj\Strategy\Header\HeaderExtraction;
 use Hj\Strategy\Strategy;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use ReflectionException;
 
 /**
  * Get all row from the file
@@ -39,16 +40,6 @@ class CollectRowAdapterStrategy implements Strategy
      * @var RowCollector
      */
     private $rowCollector;
-
-    /**
-     * @var RowAdapterCloner
-     */
-    private $rowAdapterCloner;
-
-    /**
-     * @var CellAdapterCloner
-     */
-    private $cellAdapterCloner;
 
     /**
      * @var RowsExtractionStrategy
@@ -86,13 +77,17 @@ class CollectRowAdapterStrategy implements Strategy
     private $errorCollector;
 
     /**
+     * @var Instantiator
+     */
+    private Instantiator $instantiator;
+
+    /**
      * CollectRowAdapterStrategy constructor.
+     * @param Instantiator $instantiator
      * @param ErrorCollector $errorCollector
      * @param DateStringExcelNormalizer $dateStringExcelNormalizer
      * @param BaseDirectory $inProcessingDir
      * @param RowCollector $rowCollector
-     * @param RowAdapterCloner $rowAdapterCloner
-     * @param CellAdapterCloner $cellAdapterCloner
      * @param RowsExtractionStrategy $rowsExtractionStrategy
      * @param HeaderExtraction $headerExtractionStrategy
      * @param TrimNormalizer $trimNormalizer
@@ -100,24 +95,22 @@ class CollectRowAdapterStrategy implements Strategy
      * @param ToUpperNormalizer $toUpperNormalizer
      */
     public function __construct(
+        Instantiator $instantiator,
         ErrorCollector $errorCollector,
         DateStringExcelNormalizer $dateStringExcelNormalizer,
         BaseDirectory $inProcessingDir,
         RowCollector $rowCollector,
-        RowAdapterCloner $rowAdapterCloner,
-        CellAdapterCloner $cellAdapterCloner,
         RowsExtractionStrategy $rowsExtractionStrategy,
         HeaderExtraction $headerExtractionStrategy,
         TrimNormalizer $trimNormalizer,
         AccentsRemoverNormalizer $accentsRemoverNormalizer,
         ToUpperNormalizer $toUpperNormalizer
     ) {
+        $this->instantiator = $instantiator;
         $this->errorCollector = $errorCollector;
         $this->dateStringExcelNormalizer = $dateStringExcelNormalizer;
         $this->inProcessingDir = $inProcessingDir;
         $this->rowCollector = $rowCollector;
-        $this->rowAdapterCloner = $rowAdapterCloner;
-        $this->cellAdapterCloner = $cellAdapterCloner;
         $this->rowsExtractionStrategy = $rowsExtractionStrategy;
         $this->headerExtractionStrategy = $headerExtractionStrategy;
         $this->trimNormalizer = $trimNormalizer;
@@ -134,6 +127,10 @@ class CollectRowAdapterStrategy implements Strategy
             && false === $this->errorCollector->hasError();
     }
 
+    /**
+     * @throws ExceptionInterface
+     * @throws ReflectionException
+     */
     public function apply()
     {
         $extractedHeaders = $this->headerExtractionStrategy->getExtractedHeaderValues();
@@ -142,7 +139,8 @@ class CollectRowAdapterStrategy implements Strategy
         foreach ($this->rowsExtractionStrategy->getExtractedRows() as $key => $row) {
             // we need to use a clone of original object to avoid to create an new instance
             /** @var RowAdapter $rowAdapter */
-            $rowAdapter = $this->rowAdapterCloner->replicate();
+            $rowAdapter = $this->instantiator
+                ->instantiate(RowAdapter::class);
             $currentRowIndex = $key + 2;
 
             $rowAdapter->setIndex($currentRowIndex);
@@ -155,7 +153,8 @@ class CollectRowAdapterStrategy implements Strategy
             foreach ($row as $columnName => $cell) {
                 // we need to use a clone of original object to avoid to create an new instance
                 /** @var CellAdapter $cellAdapter */
-                $cellAdapter = $this->cellAdapterCloner->replicate();
+                $cellAdapter = $this->instantiator
+                    ->instantiate(CellAdapter::class);
 
                 $cellAdapter->setRowIndex($currentRowIndex);
                 $cellAdapter->setColumnName($columnName);
