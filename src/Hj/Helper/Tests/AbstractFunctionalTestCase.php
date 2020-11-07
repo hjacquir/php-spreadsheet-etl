@@ -8,10 +8,15 @@
 namespace Hj\Helper\Tests;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Tools\Setup;
 use Hj\Command\AbstractCommand;
 use Hj\Error\Error;
+use Hj\Exception\KeyNotExist;
+use Hj\Exception\WrongTypeException;
 use Hj\Factory\DatabaseConfigFactory;
 use Hj\Validator\ConfigFileValidator;
 use Monolog\Logger;
@@ -93,9 +98,14 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
         // and recreate them empty
         mkdir($this->distantFolderForTest . "waiting");
         mkdir($this->distantFolderForTest . "in_processing");
-        $connection = $this->getEntityManager()->getConnection();
-        // to avoid many too connections errors see (https://github.com/laravel/framework/issues/18471)
-        $connection->executeQuery('set global max_connections = 200;');
+        // copy local sqlite database from test folder to distant folder test
+        FileSystemManager::rcopy(
+            $this->testFilesFolder . "/../test.sqlite",
+            $this->distantFolderForTest  . "/test.sqlite");
+
+        $connection = $this
+            ->getEntityManager()
+            ->getConnection();
         $this->truncateDatabase($connection);
         $this->insertFixtures();
     }
@@ -261,28 +271,25 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
 
     /**
      * @param Connection $connection
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws DBALException
      */
     private function truncateDatabase(Connection $connection)
     {
-        $connection->executeQuery('SET FOREIGN_KEY_CHECKS = 0;');
         $schemaManager = $connection->getSchemaManager();
 
         $tables = $schemaManager->listTables();
-
         foreach ($tables as $table) {
             $name = $table->getName();
-            $connection->executeQuery('TRUNCATE ' . $name . ';');
+            $connection->executeQuery('DELETE FROM ' . $name . ';');
         }
-
-        $connection->executeQuery('SET FOREIGN_KEY_CHECKS = 1;');
     }
 
     /**
      * @return EntityManager
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Hj\Exception\KeyNotExist
-     * @throws \Hj\Exception\WrongTypeException
+     * @throws ORMException
+     * @throws KeyNotExist
+     * @throws WrongTypeException
+     * @throws DBALException
      */
     protected function getEntityManager()
     {
@@ -295,19 +302,14 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
                 $this->getTestConfigFileFolderPath() . "configFileWithoutError.yaml"
             );
 
-            $connexion = [
-                'driver' => $databaseConfigs->getDriver()->getValue(),
-                'host' => $databaseConfigs->getHost()->getValue(),
-                'charset' => $databaseConfigs->getCharset()->getValue(),
-                'user' => $databaseConfigs->getUser()->getValue(),
-                'password' => $databaseConfigs->getPassword()->getValue(),
-                'dbname' => $databaseConfigs->getDbName()->getValue(),
-                'port' => $databaseConfigs->getPort()->getValue(),
-            ];
+            $connectionParameters = array(
+                'url' => $databaseConfigs->getUrl()->getValue(),
+            );
+
+            $connexion = DriverManager::getConnection($connectionParameters);
 
             $this->entityManager = EntityManager::create($connexion, $config);
             $this->entityManager->getConnection()->connect();
-
             return $this->entityManager;
         }
 
@@ -357,6 +359,8 @@ abstract class AbstractFunctionalTestCase extends AbstractTestCase
         $this->truncateDatabase($connection);
         // after every tests we reset the email folder receiver
         $this->resetEmailFolders();
+        // after each test we reset the distant folder
+        FileSystemManager::rrmdir($this->distantFolderForTest);
     }
 
     public function resetEmailFolders()

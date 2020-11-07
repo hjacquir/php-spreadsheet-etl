@@ -7,6 +7,8 @@
 
 namespace Hj\Tests\Functional\Command;
 
+use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\ORMException;
 use Hj\Command\ExtractCommand;
 use Hj\Command\ResetFlagAdminErrorOccured;
 use Hj\Error\ConfigFileMismatchError;
@@ -21,6 +23,8 @@ use Hj\Error\FileExtensionError;
 use Hj\Error\FileWithMultipleSheetsError;
 use Hj\Error\HeaderNotOnFirstRowError;
 use Hj\Error\MandatoryHeaderMissing;
+use Hj\Exception\KeyNotExist;
+use Hj\Exception\WrongTypeException;
 use Hj\File\CellAdapter;
 use Hj\File\Field\BirthDate;
 use Hj\File\RowAdapter;
@@ -106,7 +110,7 @@ class ExtractCommandTest extends AbstractFunctionalTestCase
             'extractFromCsv'
         );
         $secondCommand = $this->launchExtractCommandWithRealLoggerAfterFlagAdminErrorReset(
-            $this->getTestConfigFileFolderPath() . 'configFileWithoutError.yaml',
+            $this->getTestConfigFileFolderPath() . 'configFileWithoutError.yaml'
         );
 
         // we  have now 3 datas
@@ -422,11 +426,15 @@ class ExtractCommandTest extends AbstractFunctionalTestCase
      * @param string $waitingFolderName
      * @param string $configFileName
      *
+     * @throws DBALException
+     * @throws KeyNotExist
+     * @throws ORMException
+     * @throws WrongTypeException
      * @dataProvider dataProviderToTestExtractionHeaderOrRows
      */
     public function testSaveDatasOnDatabase(
-        $waitingFolderName,
-        $configFileName
+        string $waitingFolderName,
+        string $configFileName
     ) {
         $expectedDatas = [
             1 => [
@@ -468,8 +476,12 @@ class ExtractCommandTest extends AbstractFunctionalTestCase
      * @param string $className
      * @param int $expectedDataCount
      * @return array
+     * @throws DBALException
+     * @throws ORMException
+     * @throws KeyNotExist
+     * @throws WrongTypeException
      */
-    private function assertCountDatasIntoDatabase($className, $expectedDataCount)
+    private function assertCountDatasIntoDatabase(string $className, int $expectedDataCount)
     {
         $datas = $this->getEntityManager()
             ->getRepository($className)

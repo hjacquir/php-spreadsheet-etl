@@ -16,13 +16,7 @@ mails:
   users: ['hello@mydomain.com']
   from: 'notifier@spreadsheetEtl.com'
 database:
-  driver:   'pdo_mysql'
-  host:     'localhost'
-  charset:  'utf8'
-  user:     'root'
-  password: 'root'
-  dbname:   'spreadsheet-etl'
-  port:     '3311'
+  url: 'sqlite:///C:/for-spreadsheet-etl-tests/test.sqlite'
 file:
   commonMandatoryHeaders: ['FOO','BIRTHDATE']
   optionalHeaders: ['WORLD']

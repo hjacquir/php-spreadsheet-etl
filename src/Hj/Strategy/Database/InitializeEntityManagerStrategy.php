@@ -7,6 +7,8 @@
 
 namespace Hj\Strategy\Database;
 
+use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Setup;
 use Hj\Config\DatabaseConfig;
@@ -22,58 +24,50 @@ use Hj\Strategy\Strategy;
  */
 class InitializeEntityManagerStrategy implements Strategy
 {
-    const DRIVER = 'driver';
-    const HOST = 'host';
-    const CHARSET = 'charset';
-    const USER = 'user';
-    const PASSWORD = 'password';
-    const DBNAME = 'dbname';
-    const PORT = 'port';
-
     /**
-     * @var EntityManager
+     * @var EntityManager|null
      */
-    private $doctrineOrmEntityManager = null;
+    private ?EntityManager $doctrineOrmEntityManager = null;
 
     /**
      * @var string
      */
-    private $annotationXmlPath;
+    private string $annotationXmlPath;
 
     /**
      * @var bool
      */
-    private $autoGenerateProxyClasses;
+    private bool $autoGenerateProxyClasses;
 
     /**
      * @var DatabaseConnexionError
      */
-    private $databaseError;
+    private DatabaseConnexionError $databaseError;
 
     /**
      * @var string
      */
-    private $proxyDirPath;
+    private string $proxyDirPath;
 
     /**
      * @var Directory
      */
-    private $waitingDirectory;
+    private Directory $waitingDirectory;
 
     /**
      * @var CatchedErrorHandler
      */
-    private $catchedErrorHandler;
+    private CatchedErrorHandler $catchedErrorHandler;
 
     /**
      * @var bool
      */
-    private $isInitialized = false;
+    private bool $isInitialized = false;
 
     /**
      * @var DatabaseConfig
      */
-    private $databaseConfig;
+    private DatabaseConfig $databaseConfig;
 
     /**
      * InitializeEntityManagerStrategy constructor.
@@ -88,9 +82,9 @@ class InitializeEntityManagerStrategy implements Strategy
     public function __construct(
         DatabaseConfig $databaseConfig,
         CatchedErrorHandler $catchedErrorHandler,
-        $annotationXmlPath,
-        $proxyDirPath,
-        $autoGenerateProxyClasses,
+        string $annotationXmlPath,
+        string $proxyDirPath,
+        bool $autoGenerateProxyClasses,
         DatabaseConnexionError $databaseError,
         Directory $waitingDirectory
     )
@@ -114,24 +108,24 @@ class InitializeEntityManagerStrategy implements Strategy
     }
 
     /**
-     * @throws \Hj\Exception\KeyNotExist
+     * @throws DBALException
      */
     public function apply()
     {
         if (is_null($this->doctrineOrmEntityManager)) {
-            $config = Setup::createXMLMetadataConfiguration(array($this->annotationXmlPath));
+            $config = Setup::createXMLMetadataConfiguration(
+                [
+                    $this->annotationXmlPath,
+                ]
+            );
             $config->setProxyDir($this->proxyDirPath);
             $config->setAutoGenerateProxyClasses($this->autoGenerateProxyClasses);
 
-            $connexion = [
-                self::DRIVER => $this->databaseConfig->getDriver()->getValue(),
-                self::HOST => $this->databaseConfig->getHost()->getValue(),
-                self::CHARSET => $this->databaseConfig->getCharset()->getValue(),
-                self::USER => $this->databaseConfig->getUser()->getValue(),
-                self::PASSWORD => $this->databaseConfig->getPassword()->getValue(),
-                self::DBNAME => $this->databaseConfig->getDbName()->getValue(),
-                self::PORT => $this->databaseConfig->getPort()->getValue(),
+            $connectionParameters = [
+                'url' => $this->databaseConfig->getUrl()->getValue(),
             ];
+
+            $connexion = DriverManager::getConnection($connectionParameters);
 
             try {
                 $this->doctrineOrmEntityManager = EntityManager::create($connexion, $config);

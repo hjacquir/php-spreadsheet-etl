@@ -114,7 +114,7 @@ class MigrateFileFromDistant extends AbstractCommand
             $ftpUsername,
             $ftpPassword,
             $ftpPort,
-            90,
+            10,
             true
         );
         $migrationMessageOnSuccesfull = '';

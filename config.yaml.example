@@ -16,13 +16,7 @@ mails:
   users: ['hello@mydomain.com', 'world@mydomain.com']
   from: 'notifier@spreadsheetEtl.com'
 database:
-  driver:   'pdo_mysql'
-  host:     'localhost'
-  charset:  'utf8'
-  user:     'root'
-  password: 'root'
-  dbname:   'spreadsheet-etl'
-  port:     '3311'
+  url: 'mysql://user:secret@localhost/mydb'
 file:
   commonMandatoryHeaders: ['LASTNAME','BIRTHDATE']
   optionalHeaders: ['FIRSTNAME']
