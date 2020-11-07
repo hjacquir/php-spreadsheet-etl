@@ -52,19 +52,13 @@ Unit and functional tests are launched on the local workstation dedicated
 to development.
 
 The test environment uses:
-* A local portable MySQL database
+* A local sqlite database
 * A portable SMTP server simulating an SMTP server
 * A portable FTP server simulating a remote ftp server
-* A directory for storing files located on: `C:` (for windows environnment)
+* A directory for storing files located on: `C:`
 
 Recommendations:
 * Java must be installed on the computer.
-
-* The MySQL server, is located in `tests\mysql_mini_server_11`. 
-To start the server double click on: `mysql_start.bat` and to stop it:` mysql_stop.bat`. 
-Before and after each test, the database is filled and then emptied of this data. 
-Therefore, the portable server only contains the structure of the tables. 
-The test data is contained in the file: `tests\Functional\fixtures\fixtures.yaml`
 
 * Functional tests which use send mails, use a test SMTP for sending. 
 Therefore before launching the tests you must start this server.
