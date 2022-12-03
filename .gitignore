@@ -8,3 +8,13 @@ tests/mysql_mini_server_11/udrive/data/mysql_mini.err
 tests/mysql_mini_server_11/udrive/data/mysql_mini.pid
 tests/mysql_mini_server_11/udrive/data/spreadsheet-etl/*.MYI
 tests/mysql_mini_server_11/udrive/data/spreadsheet-etl/*.MYD
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
